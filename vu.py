@@ -1,5 +1,6 @@
-#!/bin/python2
+#!/usr/bin/env python2
 from __future__ import print_function
+import argparse
 import sys
 import re
 import time
@@ -15,6 +16,7 @@ MAX_SAMPLE_VALUE = 127
 DISPLAY_SCALE = 5
 BAR_LEN = 24
 BAR_CHAR = '='
+BAR_PAD_CHAR = '='
 
 class PeakMonitor(object):
 
@@ -89,7 +91,14 @@ class PeakMonitor(object):
             self._samples.put(data[i] - 128)
         pa_stream_drop(stream)
 
+parser = argparse.ArgumentParser(description='VU Meter for Polybar')
+parser.add_argument("-l", "--left", action="store_true",
+        help="Display left meter")
+parser.add_argument("-r", "--right", action="store_true",
+        help="Display right meter")
+
 def main():
+        args = parser.parse_args()
 
         c = ['%{{F#080}}{}%{{F-}}'.format(BAR_CHAR),
              '%{{F#090}}{}%{{F-}}'.format(BAR_CHAR),
@@ -120,13 +129,16 @@ def main():
         monitor = PeakMonitor(SINK_NAME, METER_RATE)
         for sample in monitor:
              sample = sample / DISPLAY_SCALE
+             bar_pad = '%{{F#060}}{}%{{F-i}}'.format(BAR_PAD_CHAR)
              if sample > BAR_LEN:
                 sample = BAR_LEN
-#             c_out = c[-24:-sample] # Right
-#             c_out = reversed(c_out) # Right
-             c_out = c[0:sample] # Left
-             bar_pad = '%{{F#060}}{}%{{F-i}}'.format(BAR_CHAR)
-             c_out = (c_out + BAR_LEN * [bar_pad])[:BAR_LEN]
+             if args.right:
+                 c_out = c[-24:-sample] # Right
+                 c_out = (c_out + BAR_LEN * [bar_pad])[:BAR_LEN]
+                 c_out = reversed(c_out) # Right
+             else:
+                 c_out = c[0:sample] # Left
+                 c_out = (c_out + BAR_LEN * [bar_pad])[:BAR_LEN]
              print(*c_out)
              sys.stdout.flush()
              time.sleep(0.0005) # Polybar needs a couple of microseconds to think ;)
