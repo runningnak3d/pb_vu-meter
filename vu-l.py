@@ -1,4 +1,5 @@
 #!/bin/python2
+from __future__ import print_function
 import sys
 import re
 import time
@@ -11,7 +12,9 @@ from pulseaudio.lib_pulseaudio import *
 SINK_NAME = 'alsa_output.pci-0000_00_1f.3.analog-stereo'  # edit to match your sink
 METER_RATE = 344
 MAX_SAMPLE_VALUE = 127
-DISPLAY_SCALE = 10
+DISPLAY_SCALE = 5
+BAR_LEN = 24
+BAR_CHAR = '='
 
 class PeakMonitor(object):
 
@@ -87,68 +90,45 @@ class PeakMonitor(object):
         pa_stream_drop(stream)
 
 def main():
-        c1  = '%{F#080}==%{F-}' # dark green
-        c2  = '%{F#0a0}==%{F-}' # green
-        c3  = '%{F#0c0}==%{F-}' # green
-        c4  = '%{F#0f0}==%{F-}' # green
-        c5  = '%{F#ff0}==%{F-}' # yellow
-        c6  = '%{F#fd0}==%{F-}' # yellow
-        c7  = '%{F#f80}==%{F-}' # orange
-        c8  = '%{F#f60}==%{F-}' # orange
-        c9  = '%{F#800}==%{F-}' # red
-        c10 = '%{F#a00}==%{F-}' # red
-        c11 = '%{F#c00}==%{F-}' # red
-        c12 = '%{F#f00}==%{F-}' # red
 
-        b2  = '=='
-        b4  = '===='
-        b6  = '======'
-        b8  = '========'
-        b10 = '=========='
-        b12 = '============'
-        b14 = '=============='
-        b16 = '================'
-        b18 = '=================='
-        b20 = '===================='
-        b22 = '======================'
-        b24 = '========================'
-
-        out_bar = ["{}".format \
-                   (b24),
-                   "{}{}".format \
-                   (c1,b22),
-                   "{}{}{}".format \
-                   (c1,c2,b20),
-                   "{}{}{}{}".format \
-                   (c1,c2,c3,b18),
-                   "{}{}{}{}{}".format \
-                   (c1,c2,c3,c4,b16),
-                   "{}{}{}{}{}{}".format \
-                   (c1,c2,c3,c4,c5,b14),
-                   "{}{}{}{}{}{}{}".format \
-                   (c1,c2,c3,c4,c5,c6,b12),
-                   "{}{}{}{}{}{}{}{}".format \
-                   (c1,c2,c3,c4,c5,c6,c7,b10),
-                   "{}{}{}{}{}{}{}{}{}".format \
-                   (c1,c2,c3,c4,c5,c6,c7,c8,b8),
-                   "{}{}{}{}{}{}{}{}{}{}".format \
-                   (c1,c2,c3,c4,c5,c6,c7,c8,c9,b6),
-                   "{}{}{}{}{}{}{}{}{}{}{}".format \
-                   (c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,b4),
-                   "{}{}{}{}{}{}{}{}{}{}{}{}".format \
-                   (c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,b2),
-                   "{}{}{}{}{}{}{}{}{}{}{}{}".format \
-                   (c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12),
-                  ]
+        c = ['%{{F#080}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#090}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#0a0}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#0b0}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#0c0}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#0d0}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#0e0}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#0f0}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#fd0}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#fe0}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#ff0}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#ff0}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#f90}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#f80}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#f70}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#f60}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#f00}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#e00}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#d00}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#c00}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#b00}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#a00}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#900}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#800}}{}%{{F-}}'.format(BAR_CHAR)
+            ]
 
         monitor = PeakMonitor(SINK_NAME, METER_RATE)
         for sample in monitor:
              sample = sample / DISPLAY_SCALE
-             if sample > 12:
-                sample = 12
-             print '%s\n' % (out_bar[sample]),
+             if sample > BAR_LEN:
+                sample = BAR_LEN
+#             c_out = c[-24:-sample] # Right
+#             c_out = reversed(c_out) # Right
+             c_out = c[0:sample] # Left
+             c_out = (c_out + BAR_LEN * ['%{F#060}=%{F-}'])[:BAR_LEN]
+             print(*c_out)
              sys.stdout.flush()
-             time.sleep(0.0005) # Polybar needs a microsecond to think ;)
+             time.sleep(0.0005) # Polybar needs a couple of microseconds to think ;)
 
 if __name__ == '__main__':
     main()
