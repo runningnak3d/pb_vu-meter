@@ -139,7 +139,8 @@ def main():
              else:
                  c_out = c[0:sample] # Left
                  c_out = (c_out + BAR_LEN * [bar_pad])[:BAR_LEN]
-             print(*c_out)
+                 c_out = "".join(c_out)
+             print(c_out)
              sys.stdout.flush()
              time.sleep(0.0005) # Polybar needs a couple of microseconds to think ;)
 
