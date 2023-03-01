@@ -1,5 +1,6 @@
 #!/usr/bin/env python2
 from __future__ import print_function
+from __future__ import absolute_import
 import argparse
 import sys
 import re
@@ -9,8 +10,9 @@ from ctypes import POINTER, c_ubyte, c_void_p, c_ulong, cast
 
 # From https://github.com/Valodim/python-pulseaudio
 from pulseaudio.lib_pulseaudio import *
+from six.moves import range
 
-SINK_NAME = 'alsa_output.pci-0000_00_1f.3.analog-stereo'  # edit to match your sink
+SINK_NAME = 'alsa_output.pci-0000_02_02.0.analog-stereo'  # edit to match your sink
 METER_RATE = 344
 MAX_SAMPLE_VALUE = 127
 DISPLAY_SCALE = 5
@@ -84,7 +86,7 @@ class PeakMonitor(object):
         data = c_void_p()
         pa_stream_peek(stream, data, c_ulong(length))
         data = cast(data, POINTER(c_ubyte))
-        for i in xrange(length):
+        for i in range(length):
             # When PA_SAMPLE_U8 is used, samples values range from 128
             # to 255 because the underlying audio data is signed but
             # it doesn't make sense to return signed peaks.
@@ -100,49 +102,55 @@ parser.add_argument("-r", "--right", action="store_true",
 def main():
         args = parser.parse_args()
 
-        c = ['%{{F#080}}{}%{{F-}}'.format(BAR_CHAR),
-             '%{{F#090}}{}%{{F-}}'.format(BAR_CHAR),
-             '%{{F#0a0}}{}%{{F-}}'.format(BAR_CHAR),
-             '%{{F#0b0}}{}%{{F-}}'.format(BAR_CHAR),
-             '%{{F#0c0}}{}%{{F-}}'.format(BAR_CHAR),
-             '%{{F#0d0}}{}%{{F-}}'.format(BAR_CHAR),
-             '%{{F#0e0}}{}%{{F-}}'.format(BAR_CHAR),
-             '%{{F#0f0}}{}%{{F-}}'.format(BAR_CHAR),
-             '%{{F#fd0}}{}%{{F-}}'.format(BAR_CHAR),
-             '%{{F#fe0}}{}%{{F-}}'.format(BAR_CHAR),
-             '%{{F#ff0}}{}%{{F-}}'.format(BAR_CHAR),
-             '%{{F#ff0}}{}%{{F-}}'.format(BAR_CHAR),
-             '%{{F#f90}}{}%{{F-}}'.format(BAR_CHAR),
-             '%{{F#f80}}{}%{{F-}}'.format(BAR_CHAR),
-             '%{{F#f70}}{}%{{F-}}'.format(BAR_CHAR),
-             '%{{F#f60}}{}%{{F-}}'.format(BAR_CHAR),
-             '%{{F#f00}}{}%{{F-}}'.format(BAR_CHAR),
-             '%{{F#e00}}{}%{{F-}}'.format(BAR_CHAR),
-             '%{{F#d00}}{}%{{F-}}'.format(BAR_CHAR),
-             '%{{F#c00}}{}%{{F-}}'.format(BAR_CHAR),
-             '%{{F#b00}}{}%{{F-}}'.format(BAR_CHAR),
-             '%{{F#a00}}{}%{{F-}}'.format(BAR_CHAR),
-             '%{{F#900}}{}%{{F-}}'.format(BAR_CHAR),
-             '%{{F#800}}{}%{{F-}}'.format(BAR_CHAR)
+        c = ['%{{F#338399}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#338399}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#338399}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#4295A7}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#4295A7}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#4295A7}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#45A1B4}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#45A1B4}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#45A1B4}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#38B5C1}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#38B5C1}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#38B5C1}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#17B1B3}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#17B1B3}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#17B1B3}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#08C1C0}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#08C1C0}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#08C1C0}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#48D7D1}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#48D7D1}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#48D7D1}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#A7FEF5}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#A7FEF5}}{}%{{F-}}'.format(BAR_CHAR),
+             '%{{F#A7FEF5}}{}%{{F-}}'.format(BAR_CHAR)
             ]
 
-        monitor = PeakMonitor(SINK_NAME, METER_RATE)
-        for sample in monitor:
-             sample = sample / DISPLAY_SCALE
-             bar_pad = '%{{F#060}}{}%{{F-i}}'.format(BAR_PAD_CHAR)
-             if sample > BAR_LEN:
-                sample = BAR_LEN
-             if args.right:
-                 c_out = c[-24:-sample] # Right
-                 c_out = (c_out + BAR_LEN * [bar_pad])[:BAR_LEN]
-                 c_out = reversed(c_out) # Right
-             else:
-                 c_out = c[0:sample] # Left
-                 c_out = (c_out + BAR_LEN * [bar_pad])[:BAR_LEN]
-                 c_out = "".join(c_out)
-             print(c_out)
-             sys.stdout.flush()
-             time.sleep(0.0005) # Polybar needs a couple of microseconds to think ;)
+        while (True):
+            monitor = PeakMonitor(SINK_NAME, METER_RATE)
+            for sample in monitor:
+                 sample = sample / DISPLAY_SCALE
+                 if not sample == 0:
+                     bar_pad = '%{{F#3F4551}}{}%{{F-}}'.format(BAR_PAD_CHAR)
+                     if sample > BAR_LEN:
+                        sample = BAR_LEN
+                     if args.right:
+                         c_out = c[-24:-sample] # Right
+                         c_out = (c_out + BAR_LEN * [bar_pad])[:BAR_LEN]
+                         c_out = reversed(c_out) # Right
+                     else:
+                         c_out = c[0:sample] # Left
+                         c_out = (c_out + BAR_LEN * [bar_pad])[:BAR_LEN]
+                         c_out = "".join(c_out)
+                     print("".join(c_out))
+                     #print(c_out)
+                     sys.stdout.flush()
+                     #time.sleep(0.0005) # Polybar needs a couple of microseconds to think ;)
+                 else:
+                     print ("%{F#3F4551}========================%{F-}")
+                     continue
 
 if __name__ == '__main__':
     main()
